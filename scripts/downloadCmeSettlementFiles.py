@@ -1,7 +1,10 @@
-#!/usr/bin/python  
+#!/usr/bin/python
 
-import os  
-import urllib2
+import os
+import urllib3
+from urllib3 import PoolManager
+from urllib.parse import urlparse
+from ftplib import FTP
 import shutil
 from datetime import date
 
@@ -29,27 +32,38 @@ if os.path.exists(temp_dir): shutil.rmtree(temp_dir)
 os.mkdir(temp_dir)
 
 # READ URL LIST FROM CONFIG FILE
-urlFile = '../config/url_list.txt'  
-block_sz = 8192  
-f = open(urlFile, 'r')  
-url_list = f.readlines()  
-f.close() 
+urlFile = '../config/url_list.txt'
+block_sz = 8192
+f = open(urlFile, 'r')
+url_list = f.readlines()
+f.close()
 
 #DOWNLOAD EACH OF THE FILES TO THE TEMP DIRECTORY
-for url in url_list: 
-	url = url.strip().split(',')[0]
-	#print 'Downloading ' + url 
-	u  = urllib2.urlopen(url)  
-	file_name = temp_dir + '/' + url.split('/')[-1]  
-	f = open(file_name, 'wb')  
-	while 1:  
-		buffer = u.read(block_sz)  
-		if not buffer: 
-			break  
-		f.write(buffer)  
-	f.close()  
+for url in url_list:
+    url = url.strip().split(',')[0]
+    file_name = url.split('/')[-1]
+    url_obj = urlparse(url)
+    host  = url_obj.netloc
+    path = url_obj.path
 
-#RENAME TEMP DIRECTORY BASED ON FIRST DATA FILE 
+    #print ('Downloading ' + url)
+    print (path)
+    ftp = FTP()
+    port = 21
+    ftp.connect(host, port)
+    ftp.login('anonymous','')
+
+
+    ftp.retrbinary("RETR " + path ,open(temp_dir + '/' + file_name, 'wb').write)
+    # f = open(file_name, 'wb')
+    # while 1:
+    #     buffer = u.read(block_sz)
+    #     if not buffer:
+    #         break
+    #     f.write(buffer)
+    # f.close()
+
+#RENAME TEMP DIRECTORY BASED ON FIRST DATA FILE
 url = url_list[0].strip().split(',')[0]
 file_name = temp_dir + '/' + url.split('/')[-1]
 newPath = '../settlement_data_files/' + getDateFromFirstLineOfDataFile_YYYYMMDD(file_name)
