@@ -11,7 +11,7 @@ def HashTableFromFileAsText(filename = '',sep=','):
 
     #VALIDATE THAT FILE EXISTS
     if not os.path.isfile(filename):
-        print 'file not found: ',filename
+        print ('file not found: ',filename)
         return _result
 
     #READ DATA FROM FILE
